@@ -2,6 +2,7 @@ package br.edu.ufsj.tp.Security;
 
 
 import br.edu.ufsj.tp.Helpers.EnvPropertiesHelper;
+import br.edu.ufsj.tp.Helpers.JwtTokenHelper;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,40 +64,16 @@ public class CustomAuthFilter extends UsernamePasswordAuthenticationFilter {
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
                                             Authentication authResult) throws IOException {
         User user = (User) authResult.getPrincipal();
-        EnvPropertiesHelper envPropertiesHelper = new EnvPropertiesHelper();
-        String secret = "secret";
 
-        log.info(secret);
-        Algorithm algorithm = Algorithm.HMAC256(secret);
+        Map<String, String> tokens = JwtTokenHelper.signTokens(
+                user.getUsername(),
+                request.getRequestURL().toString(),
+                user.getAuthorities()
+                        .stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList())
+        );
 
-        String token = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
-                .withIssuer(request.getRequestURL().toString())
-                .withClaim(
-                        "roles",
-                        user.getAuthorities()
-                                .stream().
-                                map(GrantedAuthority::getAuthority)
-                                .collect(Collectors.toList())
-                ).sign(algorithm);
-
-        String refresh_token = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
-                .withIssuer(request.getRequestURL().toString())
-                .withClaim(
-                        "roles",
-                        user.getAuthorities()
-                                .stream().
-                                map(GrantedAuthority::getAuthority)
-                                .collect(Collectors.toList())
-                ).sign(algorithm);
-
-        Map<String, String> tokens = new HashMap<>();
-
-        tokens.put("access_token", token);
-        tokens.put("refresh_token", refresh_token);
         response.setContentType(APPLICATION_JSON_VALUE);
         new ObjectMapper().writeValue(response.getOutputStream(), tokens);
 

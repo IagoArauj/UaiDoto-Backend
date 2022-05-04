@@ -1,5 +1,6 @@
 package br.edu.ufsj.tp.Controller;
 
+import br.edu.ufsj.tp.Helpers.JwtTokenHelper;
 import br.edu.ufsj.tp.Model.Users;
 import br.edu.ufsj.tp.Repository.UsersRepository;
 import com.auth0.jwt.JWT;
@@ -91,50 +92,19 @@ public class UsersController implements UserDetailsService {
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             try {
                 String refreshToken = authorizationHeader.substring("Bearer ".length());
+                DecodedJWT decodedJWT = JwtTokenHelper.verify(refreshToken);
 
-                Algorithm algorithm = Algorithm.HMAC256("secret".getBytes(StandardCharsets.UTF_8));
+                Users user = repository.findByEmail(decodedJWT.getSubject());
 
-                JWTVerifier verifier = JWT.require(algorithm).build();
-                DecodedJWT decodedJWT = verifier.verify(refreshToken);
+                List<String> authorities = new ArrayList<>();
+                authorities.add(user.getCrm() == 0 ? "doctor" : "patient");
 
-                String email = decodedJWT.getSubject();
-                Users user = repository.findByEmail(email);
+                Map<String, String> tokens = JwtTokenHelper.signTokens(
+                        user.getEmail(),
+                        request.getRequestURL().toString(),
+                        authorities
+                );
 
-                Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-
-                if (user.getCrm() != 0) {
-                    authorities.add(new SimpleGrantedAuthority("doctor"));
-                } else {
-                    authorities.add(new SimpleGrantedAuthority("patient"));
-                }
-
-                String token = JWT.create()
-                        .withSubject(user.getEmail())
-                        .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
-                        .withIssuer(request.getRequestURL().toString())
-                        .withClaim(
-                                "roles",
-                                authorities.stream()
-                                        .map(GrantedAuthority::getAuthority)
-                                        .collect(Collectors.toList())
-                        ).sign(algorithm);
-
-                String refresh_token = JWT.create()
-                        .withSubject(user.getEmail())
-                        .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
-                        .withIssuer(request.getRequestURL().toString())
-                        .withClaim(
-                                "roles",
-                                authorities
-                                        .stream()
-                                        .map(GrantedAuthority::getAuthority)
-                                        .collect(Collectors.toList())
-                        ).sign(algorithm);
-
-                Map<String, String> tokens = new HashMap<>();
-
-                tokens.put("access_token", token);
-                tokens.put("refresh_token", refresh_token);
                 response.setContentType(APPLICATION_JSON_VALUE);
                 new ObjectMapper().writeValue(response.getOutputStream(), tokens);
             } catch (Exception e) {
