@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -22,6 +23,6 @@ public class Users {
     private long phone;
     private List<WorkDays> workDays;
     private long crm;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
+    private Date createdAt;
+    private Date updatedAt;
 }

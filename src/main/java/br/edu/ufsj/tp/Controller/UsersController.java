@@ -47,11 +47,13 @@ public class UsersController implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Users user = repository.findByEmail(email);
+        Optional<Users> opUser = repository.findByEmail(email);
 
-        if(user == null) {
+        if(opUser.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
+
+        Users user = opUser.get();
 
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
@@ -78,11 +80,22 @@ public class UsersController implements UserDetailsService {
     @PostMapping("")
     public ResponseEntity<Users> create(@RequestBody Users user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setCreatedAt(ZonedDateTime.now());
-        user.setUpdatedAt(ZonedDateTime.now());
+        user.setCreatedAt(new Date(System.currentTimeMillis()));
+        user.setUpdatedAt(new Date(System.currentTimeMillis()));
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 this.repository.save(user)
         );
+    }
+
+    @GetMapping("list/doctors")
+    public ResponseEntity<List<Users>> listDoctors() {
+        List<Users> users = repository.findAllByCrmIsNot(0);
+
+        if(!users.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK).body(users);
+        }
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
     @GetMapping("refresh-token")
@@ -94,8 +107,13 @@ public class UsersController implements UserDetailsService {
                 String refreshToken = authorizationHeader.substring("Bearer ".length());
                 DecodedJWT decodedJWT = JwtTokenHelper.verify(refreshToken);
 
-                Users user = repository.findByEmail(decodedJWT.getSubject());
+                Optional<Users> opUser = repository.findByEmail(decodedJWT.getSubject());
 
+                if(opUser.isEmpty()) {
+                    throw new Error();
+                }
+
+                Users user = opUser.get();
                 List<String> authorities = new ArrayList<>();
                 authorities.add(user.getCrm() == 0 ? "doctor" : "patient");
 

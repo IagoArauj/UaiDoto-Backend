@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
+/*
 @Slf4j
 @RequiredArgsConstructor
 public class CustomAuthFilter extends UsernamePasswordAuthenticationFilter {
@@ -78,4 +79,4 @@ public class CustomAuthFilter extends UsernamePasswordAuthenticationFilter {
         new ObjectMapper().writeValue(response.getOutputStream(), tokens);
 
     }
-}
+}*/
