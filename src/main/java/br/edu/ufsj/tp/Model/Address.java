@@ -6,7 +6,7 @@ import lombok.Data;
 public class Address {
     private String zipCode;
     private String city;
-    private String address;
+    private String street;
     private String number;
     private String complement;
 }

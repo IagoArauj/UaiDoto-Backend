@@ -2,10 +2,11 @@ package br.edu.ufsj.tp.Model;
 
 import lombok.Data;
 
+import java.time.LocalTime;
+import java.util.Date;
+
 @Data
 public class WorkHours {
-    private int initialHour;
-    private int initialMinute;
-    private int finalHour;
-    private int finalMinute;
+    private LocalTime start;
+    private LocalTime end;
 }

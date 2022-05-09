@@ -39,7 +39,7 @@ public class LoginController {
 
         if(user.isPresent() && passwordEncoder.matches(login.getPassword(), user.get().getPassword())) {
             List<String> authorities = new ArrayList<>();
-            authorities.add(user.get().getCrm() == 0 ? "doctor" : "patient");
+            authorities.add(user.get().getCrm().equals("") ? "doctor" : "patient");
 
             Map<String, String> tokens = JwtTokenHelper.signTokens(
                     user.get().getEmail(),

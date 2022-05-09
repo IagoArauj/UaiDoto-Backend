@@ -22,7 +22,7 @@ public class Users {
     private Address address;
     private long phone;
     private List<WorkDays> workDays;
-    private long crm;
+    private String crm;
     private Date createdAt;
     private Date updatedAt;
 }

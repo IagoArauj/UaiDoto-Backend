@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.stream;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 @RestController
@@ -57,7 +58,7 @@ public class UsersController implements UserDetailsService {
 
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
-        if (user.getCrm() != 0) {
+        if (!user.getCrm().equals("")) {
             authorities.add(new SimpleGrantedAuthority("doctor"));
         } else {
             authorities.add(new SimpleGrantedAuthority("patient"));
@@ -79,6 +80,7 @@ public class UsersController implements UserDetailsService {
 
     @PostMapping("")
     public ResponseEntity<Users> create(@RequestBody Users user) {
+        log.info(user.toString());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setCreatedAt(new Date(System.currentTimeMillis()));
         user.setUpdatedAt(new Date(System.currentTimeMillis()));
@@ -115,7 +117,7 @@ public class UsersController implements UserDetailsService {
 
                 Users user = opUser.get();
                 List<String> authorities = new ArrayList<>();
-                authorities.add(user.getCrm() == 0 ? "doctor" : "patient");
+                authorities.add(!user.getCrm().equals("") ? "doctor" : "patient");
 
                 Map<String, String> tokens = JwtTokenHelper.signTokens(
                         user.getEmail(),
@@ -130,7 +132,7 @@ public class UsersController implements UserDetailsService {
                 error.put("error", e.getMessage());
 
                 response.setContentType(APPLICATION_JSON_VALUE);
-                response.setStatus(FORBIDDEN.value());
+                response.setStatus(UNAUTHORIZED.value());
                 new ObjectMapper().writeValue(response.getOutputStream(), error);
             }
         } else {
