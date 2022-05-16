@@ -1,11 +1,9 @@
 package br.edu.ufsj.tp.Controller;
 
-import br.edu.ufsj.tp.Helpers.JwtTokenHelper;
+import br.edu.ufsj.tp.Helper.JwtTokenHelper;
 import br.edu.ufsj.tp.Model.Login;
 import br.edu.ufsj.tp.Model.Users;
 import br.edu.ufsj.tp.Repository.UsersRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.*;
-
-import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping("")
@@ -39,7 +34,7 @@ public class LoginController {
 
         if(user.isPresent() && passwordEncoder.matches(login.getPassword(), user.get().getPassword())) {
             List<String> authorities = new ArrayList<>();
-            authorities.add(user.get().getCrm().equals("") ? "doctor" : "patient");
+            authorities.add(user.get().getCrm() != null ? "doctor" : "patient");
 
             Map<String, String> tokens = JwtTokenHelper.signTokens(
                     user.get().getEmail(),

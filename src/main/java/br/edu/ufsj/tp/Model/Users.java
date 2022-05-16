@@ -23,6 +23,7 @@ public class Users {
     private long phone;
     private List<WorkDays> workDays;
     private String crm;
+    private String specialty;
     private Date createdAt;
     private Date updatedAt;
 }

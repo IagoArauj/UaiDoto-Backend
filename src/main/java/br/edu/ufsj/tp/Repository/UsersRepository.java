@@ -12,6 +12,14 @@ public interface UsersRepository extends MongoRepository<Users, String> {
     @Query("{email:'?0'}")
     Optional<Users> findByEmail(String email);
 
-    List<Users> findAllByCrmIsNot(int crm);
+    List<Users> findAllBySpecialtyContainingAndCrmIsNotNull(String specialty);
+
+    List<Users> findAllByNameContainingIgnoreCaseAndCrmIsNotNull(String name);
+
+    List<Users> findAllByNameContainingIgnoreCaseAndSpecialtyContainingIgnoreCaseAndCrmIsNotNull(
+            String name, String specialty
+    );
+
+    List<Users> findAllByCrmIsNotNull();
 
 }

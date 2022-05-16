@@ -1,11 +1,11 @@
 package br.edu.ufsj.tp.Controller;
 
-import br.edu.ufsj.tp.Helpers.JwtTokenHelper;
+import br.edu.ufsj.tp.Helper.JwtTokenHelper;
+import br.edu.ufsj.tp.Model.Specialty;
 import br.edu.ufsj.tp.Model.Users;
+import br.edu.ufsj.tp.Repository.SpecialtyRepository;
 import br.edu.ufsj.tp.Repository.UsersRepository;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
+import br.edu.ufsj.tp.Utils.SearchDoctors;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
@@ -13,10 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,14 +23,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -44,6 +37,8 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 public class UsersController implements UserDetailsService {
     @Autowired
     private UsersRepository repository;
+    @Autowired
+    private SpecialtyRepository specialtyRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -58,7 +53,7 @@ public class UsersController implements UserDetailsService {
 
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
-        if (!user.getCrm().equals("")) {
+        if (user.getCrm() != null) {
             authorities.add(new SimpleGrantedAuthority("doctor"));
         } else {
             authorities.add(new SimpleGrantedAuthority("patient"));
@@ -89,9 +84,24 @@ public class UsersController implements UserDetailsService {
         );
     }
 
-    @GetMapping("list/doctors")
-    public ResponseEntity<List<Users>> listDoctors() {
-        List<Users> users = repository.findAllByCrmIsNot(0);
+    @PostMapping("list/doctors")
+    public ResponseEntity<List<Users>> listDoctors(@RequestBody SearchDoctors body) {
+        List<Users> users = new ArrayList<>();
+
+        if(!body.getSpecialty().isEmpty() && !body.getName().isEmpty()) {
+            users = repository.findAllByNameContainingIgnoreCaseAndSpecialtyContainingIgnoreCaseAndCrmIsNotNull(
+                    body.getName(),
+                    body.getSpecialty()
+            );
+        }
+        else if(!body.getName().isEmpty()) {
+            users = repository.findAllByNameContainingIgnoreCaseAndCrmIsNotNull(body.getName());
+        }
+        else if(!body.getSpecialty().isEmpty()) {
+            users = repository.findAllBySpecialtyContainingAndCrmIsNotNull(body.getSpecialty());
+        } else {
+            users = repository.findAllByCrmIsNotNull();
+        }
 
         if(!users.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(users);
@@ -138,5 +148,15 @@ public class UsersController implements UserDetailsService {
         } else {
             throw new RuntimeException("Refresh token is missing");
         }
+    }
+    @GetMapping("doctors/specialties")
+    public ResponseEntity<List<Specialty>> showSpecialties() {
+        List<Specialty> specialties = specialtyRepository.findAll();
+
+        if(specialties.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(specialties);
     }
 }
