@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -14,9 +14,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 @Slf4j
 public class TpApplication {
-
 	@Autowired
-	private Environment env;
+	private ResourceLoader resourceLoader;
 
 	public static void main(String[] args) {
 		SpringApplication.run(TpApplication.class, args);
