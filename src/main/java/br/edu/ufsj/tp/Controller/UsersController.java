@@ -149,6 +149,7 @@ public class UsersController implements UserDetailsService {
             throw new RuntimeException("Refresh token is missing");
         }
     }
+
     @GetMapping("doctors/specialties")
     public ResponseEntity<List<Specialty>> showSpecialties() {
         List<Specialty> specialties = specialtyRepository.findAll();
