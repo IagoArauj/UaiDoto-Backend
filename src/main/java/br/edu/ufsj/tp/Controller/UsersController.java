@@ -2,7 +2,7 @@ package br.edu.ufsj.tp.Controller;
 
 import br.edu.ufsj.tp.Helper.JwtTokenHelper;
 import br.edu.ufsj.tp.Model.Specialty;
-import br.edu.ufsj.tp.Model.Users;
+import br.edu.ufsj.tp.Model.User;
 import br.edu.ufsj.tp.Repository.SpecialtyRepository;
 import br.edu.ufsj.tp.Repository.UsersRepository;
 import br.edu.ufsj.tp.Utils.SearchDoctors;
@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -43,13 +45,13 @@ public class UsersController implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<Users> opUser = repository.findByEmail(email);
+        Optional<User> opUser = repository.findByEmail(email);
 
         if(opUser.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
 
-        Users user = opUser.get();
+        User user = opUser.get();
 
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
@@ -63,8 +65,8 @@ public class UsersController implements UserDetailsService {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Users> findById(@PathVariable String id) {
-        Optional<Users> user = this.repository.findById(id);
+    public ResponseEntity<User> findById(@PathVariable String id) {
+        Optional<User> user = this.repository.findById(id);
 
         if(user.isPresent()) {
             return ResponseEntity.status(HttpStatus.OK).body(user.get());
@@ -74,7 +76,7 @@ public class UsersController implements UserDetailsService {
     }
 
     @PostMapping("")
-    public ResponseEntity<Users> create(@RequestBody Users user) {
+    public ResponseEntity<User> create(@RequestBody User user) {
         log.info(user.toString());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setCreatedAt(new Date(System.currentTimeMillis()));
@@ -84,23 +86,35 @@ public class UsersController implements UserDetailsService {
         );
     }
 
-    @PostMapping("list/doctors")
-    public ResponseEntity<List<Users>> listDoctors(@RequestBody SearchDoctors body) {
-        List<Users> users = new ArrayList<>();
+    @GetMapping("doctors")
+    public ResponseEntity<Page<User>> listDoctors(
+            @RequestParam(value = "specialty", required = false, defaultValue = "0") String specialty,
+            @RequestParam(value = "name", required = false, defaultValue = "0") String name,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "20") int size
+    ) {
+        Page<User> users = null;
 
-        if(!body.getSpecialty().isEmpty() && !body.getName().isEmpty()) {
+        if(!name.equals("0") && !specialty.equals("0")) {
             users = repository.findAllByNameContainingIgnoreCaseAndSpecialtyContainingIgnoreCaseAndCrmIsNotNull(
-                    body.getName(),
-                    body.getSpecialty()
+                    name,
+                    specialty,
+                    PageRequest.of(page, size)
             );
         }
-        else if(!body.getName().isEmpty()) {
-            users = repository.findAllByNameContainingIgnoreCaseAndCrmIsNotNull(body.getName());
+        else if(!name.equals("0")) {
+            users = repository.findAllByNameContainingIgnoreCaseAndCrmIsNotNull(
+                    name,
+                    PageRequest.of(page, size)
+            );
         }
-        else if(!body.getSpecialty().isEmpty()) {
-            users = repository.findAllBySpecialtyContainingAndCrmIsNotNull(body.getSpecialty());
+        else if(!specialty.equals("0")) {
+            users = repository.findAllBySpecialtyContainingIgnoreCaseAndCrmIsNotNull(
+                    specialty,
+                    PageRequest.of(page, size)
+            );
         } else {
-            users = repository.findAllByCrmIsNotNull();
+            users = repository.findAllByCrmIsNotNull(PageRequest.of(page, size));
         }
 
         if(!users.isEmpty()) {
@@ -119,13 +133,13 @@ public class UsersController implements UserDetailsService {
                 String refreshToken = authorizationHeader.substring("Bearer ".length());
                 DecodedJWT decodedJWT = JwtTokenHelper.verify(refreshToken);
 
-                Optional<Users> opUser = repository.findByEmail(decodedJWT.getSubject());
+                Optional<User> opUser = repository.findByEmail(decodedJWT.getSubject());
 
                 if(opUser.isEmpty()) {
                     throw new Error();
                 }
 
-                Users user = opUser.get();
+                User user = opUser.get();
                 List<String> authorities = new ArrayList<>();
                 authorities.add(!user.getCrm().equals("") ? "doctor" : "patient");
 

@@ -1,6 +1,8 @@
 package br.edu.ufsj.tp.Repository;
 
-import br.edu.ufsj.tp.Model.Users;
+import br.edu.ufsj.tp.Model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
@@ -8,18 +10,20 @@ import java.util.List;
 import java.util.Optional;
 
 
-public interface UsersRepository extends MongoRepository<Users, String> {
-    @Query("{email:'?0'}")
-    Optional<Users> findByEmail(String email);
+public interface UsersRepository extends MongoRepository<User, String> {
 
-    List<Users> findAllBySpecialtyContainingAndCrmIsNotNull(String specialty);
+    Page<User> findAll(Pageable pageable);
 
-    List<Users> findAllByNameContainingIgnoreCaseAndCrmIsNotNull(String name);
+    Optional<User> findByEmail(String email);
 
-    List<Users> findAllByNameContainingIgnoreCaseAndSpecialtyContainingIgnoreCaseAndCrmIsNotNull(
-            String name, String specialty
+    Page<User> findAllBySpecialtyContainingIgnoreCaseAndCrmIsNotNull(String specialty, Pageable pageable);
+
+    Page<User> findAllByNameContainingIgnoreCaseAndCrmIsNotNull(String name, Pageable pageable);
+
+    Page<User> findAllByNameContainingIgnoreCaseAndSpecialtyContainingIgnoreCaseAndCrmIsNotNull(
+            String name, String specialty, Pageable pageable
     );
 
-    List<Users> findAllByCrmIsNotNull();
+    Page<User> findAllByCrmIsNotNull(Pageable pageable);
 
 }
