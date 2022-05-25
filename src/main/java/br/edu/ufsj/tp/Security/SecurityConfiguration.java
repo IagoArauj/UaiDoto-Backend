@@ -32,7 +32,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         http.authorizeRequests().antMatchers("/login", "/users", "/users/refresh-token",
-                        "/users/doctors/specialties")
+                        "/users/doctors/specialties", "/")
                 .permitAll();
 
         http.authorizeRequests().anyRequest()
