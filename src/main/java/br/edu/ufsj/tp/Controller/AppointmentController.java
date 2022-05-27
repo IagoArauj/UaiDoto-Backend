@@ -124,7 +124,7 @@ public class AppointmentController {
 
         return ResponseEntity.status(HttpStatus.OK).body(appointmentPage);
     }
-
+        // localhfhsdfs:fhsda/appointments/patient/18393/finished/medicines
     @GetMapping("/patient/{id}/finished/medicines")
     public ResponseEntity<Page<Appointment>> getAllByPatientIdFinished(
             @PathVariable String id,

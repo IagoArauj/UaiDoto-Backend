@@ -39,7 +39,7 @@ public class LoginController {
             authorities.add(user.get().getCrm() != null ? "doctor" : "patient");
 
             Map<String, String> tokens = JwtTokenHelper.signTokens(
-                    user.get().getEmail(),
+                    user.get().getId(),
                     request.getRequestURL().toString(),
                     authorities
             );

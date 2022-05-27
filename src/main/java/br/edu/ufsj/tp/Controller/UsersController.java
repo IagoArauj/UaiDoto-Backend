@@ -93,7 +93,7 @@ public class UsersController implements UserDetailsService {
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
             @RequestParam(value = "size", required = false, defaultValue = "20") int size
     ) {
-        Page<User> users = null;
+        Page<User> users;
 
         if(!name.equals("0") && !specialty.equals("0")) {
             users = repository.findAllByNameContainingIgnoreCaseAndSpecialtyContainingIgnoreCaseAndCrmIsNotNull(
@@ -144,7 +144,7 @@ public class UsersController implements UserDetailsService {
                 authorities.add(!user.getCrm().equals("") ? "doctor" : "patient");
 
                 Map<String, String> tokens = JwtTokenHelper.signTokens(
-                        user.getEmail(),
+                        user.getId(),
                         request.getRequestURL().toString(),
                         authorities
                 );
