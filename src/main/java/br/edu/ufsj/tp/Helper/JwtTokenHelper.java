@@ -25,12 +25,14 @@ public class JwtTokenHelper {
     public static Map<String, String> signTokens(
             String subject,
             String url,
+            String name,
             Collection<SimpleGrantedAuthority> authorities
     ) {
         String token = JWT.create()
                 .withSubject(subject)
                 .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
                 .withIssuer(url)
+                .withClaim("name", name)
                 .withClaim(
                         "roles",
                         authorities.stream()
@@ -42,6 +44,7 @@ public class JwtTokenHelper {
                 .withSubject(subject)
                 .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
                 .withIssuer(url)
+                .withClaim("name", name)
                 .withClaim(
                         "roles",
                         authorities
@@ -60,12 +63,14 @@ public class JwtTokenHelper {
     public static Map<String, String> signTokens(
             String subject,
             String url,
+            String name,
             List<String> authorities
     ) {
         String token = JWT.create()
                 .withSubject(subject)
                 .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
                 .withIssuer(url)
+                .withClaim("name", name)
                 .withClaim(
                         "roles",
                         authorities
@@ -75,6 +80,7 @@ public class JwtTokenHelper {
                 .withSubject(subject)
                 .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
                 .withIssuer(url)
+                .withClaim("name", name)
                 .withClaim(
                         "roles",
                         authorities
