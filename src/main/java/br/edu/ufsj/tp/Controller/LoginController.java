@@ -41,6 +41,7 @@ public class LoginController {
             Map<String, String> tokens = JwtTokenHelper.signTokens(
                     user.get().getId(),
                     request.getRequestURL().toString(),
+                    user.get().getName(),
                     authorities
             );
 

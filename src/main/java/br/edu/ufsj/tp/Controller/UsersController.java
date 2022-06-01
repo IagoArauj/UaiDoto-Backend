@@ -133,7 +133,7 @@ public class UsersController implements UserDetailsService {
                 String refreshToken = authorizationHeader.substring("Bearer ".length());
                 DecodedJWT decodedJWT = JwtTokenHelper.verify(refreshToken);
 
-                Optional<User> opUser = repository.findByEmail(decodedJWT.getSubject());
+                Optional<User> opUser = repository.findById(decodedJWT.getSubject());
 
                 if(opUser.isEmpty()) {
                     throw new Error();
@@ -146,6 +146,7 @@ public class UsersController implements UserDetailsService {
                 Map<String, String> tokens = JwtTokenHelper.signTokens(
                         user.getId(),
                         request.getRequestURL().toString(),
+                        user.getName(),
                         authorities
                 );
 

@@ -9,6 +9,8 @@ public class Medicine {
     private String name;
     private int gap;
     private LocalDateTime firstTime;
+    private int doseQuantity;
+    private int takenDoses = 0;
     private String dose;
-    private String notes;
+    private String notes = null;
 }
