@@ -76,13 +76,22 @@ public class UsersController implements UserDetailsService {
     }
 
     @PostMapping("")
-    public ResponseEntity<User> create(@RequestBody User user) {
+    public ResponseEntity<?> create(@RequestBody User user) {
         log.info(user.toString());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setCreatedAt(new Date(System.currentTimeMillis()));
-        user.setUpdatedAt(new Date(System.currentTimeMillis()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                this.repository.save(user)
+
+        if (user.getId() == null) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setCreatedAt(new Date(System.currentTimeMillis()));
+            user.setUpdatedAt(new Date(System.currentTimeMillis()));
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                    this.repository.save(user)
+            );
+        }
+
+        HashMap<String, String> message = new HashMap<>();
+        message.put("error", "User's id must be null");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                message
         );
     }
 

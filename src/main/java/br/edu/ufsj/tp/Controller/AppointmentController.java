@@ -7,10 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Optional;
 
 @RestController
@@ -25,7 +29,7 @@ public class AppointmentController {
     public ResponseEntity<Appointment> getById(@PathVariable String id) {
         Optional<Appointment> optionalAppointment = repository.findById(id);
 
-        if(optionalAppointment.isPresent()) {
+        if (optionalAppointment.isPresent()) {
             return ResponseEntity.status(HttpStatus.OK).body(optionalAppointment.get());
         }
 
@@ -40,7 +44,7 @@ public class AppointmentController {
     ) {
         Page<Appointment> appointmentPage = repository.findAllByDoctorIdEquals(id, PageRequest.of(page, size));
 
-        if(appointmentPage.getTotalElements() == 0) {
+        if (appointmentPage.getTotalElements() == 0) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }
 
@@ -55,7 +59,7 @@ public class AppointmentController {
             @RequestParam(value = "size", required = false, defaultValue = "20") int size
     ) {
         Page<Appointment> appointmentPage;
-        if(actives) {
+        if (actives) {
             appointmentPage = repository.findAllByDoctorIdEqualsAndActiveIsTrueAndProcessedIsTrue(
                     id, PageRequest.of(page, size)
             );
@@ -67,7 +71,7 @@ public class AppointmentController {
 
         }
 
-        if(appointmentPage.getTotalElements() == 0) {
+        if (appointmentPage.getTotalElements() == 0) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }
 
@@ -84,7 +88,7 @@ public class AppointmentController {
                 id, PageRequest.of(page, size)
         );
 
-        if(appointmentPage.getTotalElements() == 0) {
+        if (appointmentPage.getTotalElements() == 0) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }
 
@@ -101,7 +105,7 @@ public class AppointmentController {
                 id, PageRequest.of(page, size)
         );
 
-        if(appointmentPage.getTotalElements() == 0) {
+        if (appointmentPage.getTotalElements() == 0) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }
 
@@ -118,13 +122,13 @@ public class AppointmentController {
                 id, PageRequest.of(page, size)
         );
 
-        if(appointmentPage.getTotalElements() == 0) {
+        if (appointmentPage.getTotalElements() == 0) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(appointmentPage);
     }
-        // localhfhsdfs:fhsda/appointments/patient/18393/finished/medicines
+
     @GetMapping("/patient/{id}/finished/medicines")
     public ResponseEntity<Page<Appointment>> getAllByPatientIdFinished(
             @PathVariable String id,
@@ -135,7 +139,7 @@ public class AppointmentController {
                 id, PageRequest.of(page, size)
         );
 
-        if(appointmentPage.getTotalElements() == 0) {
+        if (appointmentPage.getTotalElements() == 0) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }
 
@@ -143,8 +147,34 @@ public class AppointmentController {
     }
 
     @PostMapping("")
-    public ResponseEntity<Appointment> saveAppointment(@RequestBody Appointment appointment) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(
+    public ResponseEntity<?> saveAppointment(@RequestBody Appointment appointment) {
+        log.info(appointment.getId());
+        if (appointment.getId() == null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                    repository.save(appointment)
+            );
+        }
+
+        HashMap<String, String> message = new HashMap<>();
+        message.put("error", "Appointment's id must be null");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                message
+        );
+
+    }
+
+    @PutMapping("")
+    public ResponseEntity<?> updateAppointment(@RequestBody Appointment appointment) {
+        if (repository.findById(appointment.getId()).isEmpty()) {
+            HashMap<String, String> message = new HashMap<>();
+            message.put("error", "Appointment not found");
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).body(
+                    message
+            );
+        }
+
+        appointment.setUpdatedAt(LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.OK).body(
                 repository.save(appointment)
         );
     }
