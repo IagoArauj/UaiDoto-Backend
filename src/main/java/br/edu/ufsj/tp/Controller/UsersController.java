@@ -1,8 +1,10 @@
 package br.edu.ufsj.tp.Controller;
 
 import br.edu.ufsj.tp.Helper.JwtTokenHelper;
+import br.edu.ufsj.tp.Model.City;
 import br.edu.ufsj.tp.Model.Specialty;
 import br.edu.ufsj.tp.Model.User;
+import br.edu.ufsj.tp.Repository.CityRepository;
 import br.edu.ufsj.tp.Repository.SpecialtyRepository;
 import br.edu.ufsj.tp.Repository.UsersRepository;
 import br.edu.ufsj.tp.Utils.SearchDoctors;
@@ -41,6 +43,8 @@ public class UsersController implements UserDetailsService {
     private UsersRepository repository;
     @Autowired
     private SpecialtyRepository specialtyRepository;
+    @Autowired
+    private CityRepository cityRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -83,6 +87,20 @@ public class UsersController implements UserDetailsService {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setCreatedAt(new Date(System.currentTimeMillis()));
             user.setUpdatedAt(new Date(System.currentTimeMillis()));
+
+            if (user.getCrm() != null) {
+                Optional<City> opCity = cityRepository.findByCity(user.getAddress().getCity());
+                City city;
+                if (opCity.isPresent()) {
+                    city = opCity.get();
+                    city.setDoctorsCounter(city.getDoctorsCounter() + 1);
+                } else {
+                    city = new City();
+                    city.setCity(user.getAddress().getCity());
+                    city.setDoctorsCounter(1);
+                }
+                cityRepository.save(city);
+            }
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     this.repository.save(user)
             );
@@ -93,6 +111,33 @@ public class UsersController implements UserDetailsService {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 message
         );
+    }
+
+    @DeleteMapping("{id}/delete")
+    public ResponseEntity<?> deleteUser(@PathVariable String id) {
+        Optional<User> optionalUser = repository.findById(id);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            if (user.getCrm() != null) {
+                City city = cityRepository.findByCity(user.getAddress().getCity()).get();
+                if (city.getDoctorsCounter() == 1) {
+                    cityRepository.deleteById(city.getId());
+                }
+                else {
+                    city.setDoctorsCounter(city.getDoctorsCounter() - 1);
+                    cityRepository.save(city);
+                }
+            }
+            repository.deleteById(id);
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        }
+        else {
+            HashMap<String, String> message = new HashMap<>();
+            message.put("error", "User not found");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    message
+            );
+        }
     }
 
     @GetMapping("doctors")
