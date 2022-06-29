@@ -68,7 +68,7 @@ public class JwtTokenHelper {
     ) {
         String token = JWT.create()
                 .withSubject(subject)
-                .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
                 .withIssuer(url)
                 .withClaim("name", name)
                 .withClaim(
@@ -78,7 +78,7 @@ public class JwtTokenHelper {
 
         String refreshToken = JWT.create()
                 .withSubject(subject)
-                .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000))
                 .withIssuer(url)
                 .withClaim("name", name)
                 .withClaim(
