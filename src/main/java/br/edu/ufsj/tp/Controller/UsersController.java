@@ -229,4 +229,14 @@ public class UsersController implements UserDetailsService {
 
         return ResponseEntity.status(HttpStatus.OK).body(specialties);
     }
+
+    @GetMapping("doctors/cities")
+    public ResponseEntity<List<City>> showCities() {
+        List<City> cities = cityRepository.findAll();
+        if (cities.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(cities);
+    }
 }
