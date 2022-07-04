@@ -60,7 +60,7 @@ public class AppointmentController {
     ) {
         Page<Appointment> appointmentPage;
         if (actives) {
-            appointmentPage = repository.findAllByDoctorIdEqualsAndActiveIsTrueAndProcessedIsTrue(
+            appointmentPage = repository.findAllByDoctorIdEqualsAndActiveIsTrueAndProcessedIsTrueAndFinishedIsFalse(
                     id, PageRequest.of(page, size)
             );
 

@@ -10,7 +10,7 @@ public interface AppointmentRepository extends MongoRepository<Appointment, Stri
     Page<Appointment> findAll(Pageable pageable);
 
     Page<Appointment> findAllByDoctorIdEquals(String doctorId, Pageable pageable);
-    Page<Appointment> findAllByDoctorIdEqualsAndActiveIsTrueAndProcessedIsTrue(String doctorId, Pageable pageable);
+    Page<Appointment> findAllByDoctorIdEqualsAndActiveIsTrueAndProcessedIsTrueAndFinishedIsFalse(String doctorId, Pageable pageable);
     Page<Appointment> findAllByDoctorIdEqualsAndActiveIsFalse(String doctorId, Pageable pageable);
     Page<Appointment> findAllByDoctorIdEqualsAndProcessedIsFalse(String doctorId, Pageable pageable);
     Page<Appointment> findAllByDoctorIdEqualsAndFinishedIsTrue(String doctorId, Pageable pageable);
